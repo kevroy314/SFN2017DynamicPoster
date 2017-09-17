@@ -5,9 +5,11 @@ using System;
 
 public class PathRenderer : MonoBehaviour
 {
-    public bool useTestData = false;
+    public bool useSimulatedData = false;
 
     public string pathFile;
+
+    public bool loadItemDataFromTest = true;
 
     public Vector3 scaleOnLoad = new Vector3(1f, 1f, 1f);
     public Vector3 offsetOnLoad = new Vector3(0f, 0f, 0f);
@@ -27,6 +29,11 @@ public class PathRenderer : MonoBehaviour
         public Vector3[] verticies;
         public Color[] colors;
         public int vCount;
+
+        public Vector3[] itemLocations; // x, z, t
+        public int[] itemEventType;
+
+        public int[] itemClickLocations;
     }
 
     public PlayDirection playDirection = PlayDirection.Forward;
@@ -38,6 +45,16 @@ public class PathRenderer : MonoBehaviour
     private int vertexCount;
     private Vector3[] vertexList;
     private Color[] colorList;
+
+    private int[] clickDotList;
+    private Vector3[] itemLocationList;
+
+    public Color clickDotColor = Color.white;
+    public float clickDotSize = 0.1f;
+
+    private GameObject[] clickDotGameObjects;
+
+    public Material itemMaterial;
 
     static void CreateLineMaterial()
     {
@@ -150,6 +167,43 @@ public class PathRenderer : MonoBehaviour
 
         dat.verticies[dat.verticies.Length - 1] = dat.verticies[dat.verticies.Length - 2];
 
+        //Get click locations
+
+        int[] itemClickIdxs = new int[numItems];
+        bool[] itemClickFound = new bool[numItems];
+        for(int i = itemClickeds.Count - 2; i >= 0; i--)
+        {
+            bool[] currentState = itemClickeds[i];
+            bool[] prevState = itemClickeds[i + 1];
+            bool seqEquals = true;
+            for (int j = 0; j < currentState.Length; j++)
+                seqEquals &= (currentState[j] == prevState[j]);
+            if (!seqEquals)
+            {
+                bool allFound = true;
+                for (int j = 0; j < itemClickFound.Length; j++)
+                {
+                    allFound &= itemClickFound[j];
+
+                    if (!itemClickFound[j] && currentState[j] == false && prevState[j] == true)
+                    {
+                        itemClickIdxs[j] = i;
+                        itemClickFound[j] = true;
+                    }
+                }
+                if (allFound) break;
+            }
+        }
+
+        dat.itemClickLocations = itemClickIdxs;
+
+        //Get item locations (for test)
+
+        dat.itemLocations = itemPositions[itemPositions.Count - 1];
+        for(int i = 0; i < dat.itemLocations.Length; i++)
+            dat.itemLocations[i] = new Vector3(dat.itemLocations[i].x, dat.itemLocations[i].z, itemTimes[itemTimes.Count - 1][i]);
+        dat.itemEventType = itemEvents[itemEvents.Count - 1];
+
         return dat;
     }
 
@@ -196,11 +250,61 @@ public class PathRenderer : MonoBehaviour
         vertexList = data.verticies;
         colorList = data.colors;
         vertexCount = data.vCount;
-    }
 
+        clickDotList = data.itemClickLocations;
+        itemLocationList = data.itemLocations;
+
+        // Create test location items
+
+
+        //Create click location items
+        clickDotGameObjects = new GameObject[clickDotList.Length];
+        for (int i = 0; i < clickDotList.Length; i++)
+        {
+            GameObject clickDot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            clickDot.transform.parent = transform;
+            clickDot.transform.localScale = new Vector3(clickDotSize, clickDotSize / 2f, clickDotSize);
+            clickDot.transform.localPosition = vertexList[clickDotList[i]];
+            clickDot.GetComponent<Renderer>().material.color = clickDotColor;
+            clickDotGameObjects[i] = clickDot;
+        }
+
+        if (loadItemDataFromTest)
+        {
+            GameObject testAnswersGameObject = new GameObject("TestAnswers");
+            testAnswersGameObject.transform.parent = transform.parent;
+            testAnswersGameObject.transform.localScale = new Vector3(1f, 1f, 1f);
+            testAnswersGameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
+            testAnswersGameObject.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
+            testAnswersGameObject.AddComponent<ItemLocationRenderer>();
+            ItemLocationRenderer itemRenderer = testAnswersGameObject.GetComponent<ItemLocationRenderer>();
+            itemRenderer.locations = data.itemLocations;
+            itemRenderer.colors = new Color[] { Color.yellow, Color.yellow,
+                Color.red, Color.red,
+                Color.green, Color.green,
+                Color.blue, Color.blue,
+                new Color(0.5f, 0f, 1f), new Color(0.5f, 0f, 1f)};
+            ItemLocationRenderer.EventType[] eventTypes = new ItemLocationRenderer.EventType[itemRenderer.locations.Length];
+            for (int i = 0; i < data.itemEventType.Length; i++)
+                if (data.itemEventType[i] == 0)
+                    eventTypes[i] = ItemLocationRenderer.EventType.Stationary;
+                else if (data.itemEventType[i] == 1)
+                    eventTypes[i] = ItemLocationRenderer.EventType.Up;
+                else if (data.itemEventType[i] == 2)
+                    eventTypes[i] = ItemLocationRenderer.EventType.Down;
+            itemRenderer.types = eventTypes;
+            itemRenderer.locationScale = new Vector3(0.05f, 0.05f, 0.066666666666f);
+            itemRenderer.locationOffset = new Vector3(0f, 0f, -2f);
+            itemRenderer.dotSize = 0.1f;
+            itemRenderer.lineSize = 0.05f;
+            itemRenderer.itemMaterial = itemMaterial;
+            itemRenderer.overrideTransparency = true;
+            itemRenderer.overrideTransparencyAlpha = 0.9f;
+        }
+    }
     void Start()
     {
-        if (useTestData)
+        if (useSimulatedData)
         {
             PathData data = GetTestPathData();
             InitializePath(data);
@@ -235,6 +339,18 @@ public class PathRenderer : MonoBehaviour
             endRenderIdxApprox = Mathf.Clamp(endRenderIdxApprox, 0f, vertexCount - 1);
         }
 
+        //For each click item: 
+        //If currently visualized index is greater than or equal to click item index, 
+        //set click item active, otherwise set inactive
+
+        for(int i = 0; i < clickDotList.Length; i++)
+        {
+            if (clickDotList[i] <= endRenderIdxApprox)
+                clickDotGameObjects[i].SetActive(true);
+            else
+                clickDotGameObjects[i].SetActive(false);
+        }
+
         CreateLineMaterial();
         // Apply the line material
         lineMaterial.SetPass(0);
@@ -248,7 +364,6 @@ public class PathRenderer : MonoBehaviour
         GL.Begin(GL.LINES);
         for (int i = Mathf.RoundToInt(startRenderIdxApprox); i < Mathf.RoundToInt(endRenderIdxApprox); ++i)
         {
-            
             // Vertex colors change from red to green
             GL.Color(colorList[i]);
             // One vertex at transform position
