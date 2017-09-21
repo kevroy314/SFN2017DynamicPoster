@@ -37,7 +37,7 @@ Shader "Hidden/Ray Marching/Ray Marching"
 		o.uv[0] = v.texcoord.xy;
 		o.uv[1] = v.texcoord.xy;
 		#if SHADER_API_D3D9
-		if (_MainTex_TexelSize.y < 0)
+		if (_VolumeTex_TexelSize.y < 0) //Changed _MainTex_TexelSize to _VolumeTex_TexelSize
 			o.uv[0].y = 1-o.uv[0].y;
 		#endif			
 		return o;

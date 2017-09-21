@@ -32,7 +32,7 @@ Shader "UCLA Game Lab/Wireframe/Double-Sided Cutout"
 				}
 				
 				// Geometry Shader
-				[maxvertexcount(3)]
+				//[maxvertexcount(3)]
 				void geom(triangle UCLAGL_v2g p[3], inout TriangleStream<UCLAGL_g2f> triStream)
 				{
 					UCLAGL_geom( p, triStream);
