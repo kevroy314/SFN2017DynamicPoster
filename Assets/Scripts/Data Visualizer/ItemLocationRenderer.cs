@@ -50,6 +50,8 @@ public class ItemLocationRenderer : MonoBehaviour {
             lineObj.GetComponent<Renderer>().material = itemMaterial;
             dotObj.GetComponent<Renderer>().material.color = colors[i];
             lineObj.GetComponent<Renderer>().material.color = colors[i];
+            dotObj.GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            lineObj.GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             dotObj.transform.position = new Vector3(locations[i].x, locations[i].z, locations[i].y);
             float lineLength = 2f;
             float lineOffset = 0f;
