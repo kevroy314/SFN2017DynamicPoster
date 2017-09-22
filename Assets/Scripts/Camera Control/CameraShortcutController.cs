@@ -25,7 +25,7 @@ public class CameraShortcutController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        int[] lengths = new int[] { keys.Length, positions.Length, eulerRotations.Length, times.Length };
+        int[] lengths = new int[] { keys.Length, positions.Length, eulerRotations.Length, times.Length , targets.Length, togglesActives.Length };
         int minLength = int.MaxValue;
         for (int i = 0; i < lengths.Length; i++)
             if (lengths[i] < minLength)

@@ -376,4 +376,16 @@ public class PathRenderer : MonoBehaviour
         GL.End();
         GL.PopMatrix();
     }
+
+
+
+    public void ReLoad(string path, bool loadTestData)
+    {
+        this.pathFile = path;
+        this.loadItemDataFromTest = loadTestData;
+        int childrenCount = this.rootObject.transform.childCount;
+        for (int i = 0; i < childrenCount; i++)
+            DestroyImmediate(this.rootObject.transform.GetChild(i));
+        this.Start();
+    }
 }
