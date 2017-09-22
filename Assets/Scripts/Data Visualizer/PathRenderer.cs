@@ -16,7 +16,9 @@ public class PathRenderer : MonoBehaviour
 
     public float animationSpeed = 0.1f;
     public bool loop = true;
-    
+
+    public GameObject rootObject;
+
     public enum PlayDirection
     {
         Pause=0,
@@ -269,7 +271,10 @@ public class PathRenderer : MonoBehaviour
         if (loadItemDataFromTest)
         {
             GameObject testAnswersGameObject = new GameObject("TestAnswers");
-            testAnswersGameObject.transform.parent = transform.parent;
+            if(rootObject == null)
+                testAnswersGameObject.transform.parent = transform.parent;
+            else
+                testAnswersGameObject.transform.parent = rootObject.transform;
             testAnswersGameObject.transform.localScale = new Vector3(1f, 1f, 1f);
             testAnswersGameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
             testAnswersGameObject.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
