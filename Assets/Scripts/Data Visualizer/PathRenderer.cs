@@ -18,6 +18,7 @@ public class PathRenderer : MonoBehaviour
     public bool loop = true;
 
     public GameObject rootObject;
+    public GameObject testAnswersGameObject;
 
     public enum PlayDirection
     {
@@ -26,7 +27,7 @@ public class PathRenderer : MonoBehaviour
         Backward=2
     }
 
-    struct PathData
+    public struct PathData
     {
         public Vector3[] verticies;
         public Color[] colors;
@@ -57,6 +58,11 @@ public class PathRenderer : MonoBehaviour
 
     public Material itemMaterial;
 
+    public Material overrideLineMaterial;
+
+    public Camera targetCamera;
+    public float lineWidth;
+
     static void CreateLineMaterial()
     {
         if (!lineMaterial)
@@ -76,11 +82,17 @@ public class PathRenderer : MonoBehaviour
         }
     }
 
-    PathData LoadPathFile(string path)
+    public static PathData LoadPathFile(string path)
     {
         PathData dat = new PathData();
 
-        BinaryReader reader = new BinaryReader(new FileStream(path, FileMode.Open));
+        TextAsset ta = Resources.Load(path) as TextAsset;
+
+        MemoryStream ms = new MemoryStream(ta.bytes);
+
+        // BinaryReader reader = new BinaryReader(new FileStream(path, FileMode.Open));
+
+        BinaryReader reader = new BinaryReader(ms);
 
         string header = reader.ReadString();
 
@@ -235,7 +247,7 @@ public class PathRenderer : MonoBehaviour
         return output;
     }
 
-    PathData ScalePathData(PathData data, Vector3 scalingVector, Vector3 offsetVector)
+    public static PathData ScalePathData(PathData data, Vector3 scalingVector, Vector3 offsetVector)
     {
         for(int i = 0; i < data.verticies.Length; i++)
         {
@@ -270,7 +282,7 @@ public class PathRenderer : MonoBehaviour
 
         if (loadItemDataFromTest)
         {
-            GameObject testAnswersGameObject = new GameObject("TestAnswers");
+            testAnswersGameObject = new GameObject("TestAnswers");
             if(rootObject == null)
                 testAnswersGameObject.transform.parent = transform.parent;
             else
@@ -280,7 +292,7 @@ public class PathRenderer : MonoBehaviour
             testAnswersGameObject.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
             testAnswersGameObject.AddComponent<ItemLocationRenderer>();
             ItemLocationRenderer itemRenderer = testAnswersGameObject.GetComponent<ItemLocationRenderer>();
-            itemRenderer.locations = data.itemLocations;
+            itemRenderer.locations = (Vector3[])data.itemLocations.Clone();
             itemRenderer.colors = new Color[] { Color.yellow, Color.yellow,
                 Color.red, Color.red,
                 Color.green, Color.green,
@@ -313,8 +325,8 @@ public class PathRenderer : MonoBehaviour
         }
         else
         {
-            if (pathFile == null || pathFile == "" || !File.Exists(pathFile))
-                Debug.Log("No Valid Path File Provided or File Doesn't Exist.");
+            if (pathFile == null || pathFile == "")
+                Debug.Log("No Valid Path File Provided.");
             else
             {
                 PathData data = LoadPathFile(pathFile);
@@ -352,8 +364,10 @@ public class PathRenderer : MonoBehaviour
             else
                 clickDotGameObjects[i].SetActive(false);
         }
-
-        CreateLineMaterial();
+        if (overrideLineMaterial == null)
+            CreateLineMaterial();
+        else
+            lineMaterial = overrideLineMaterial;
         // Apply the line material
         lineMaterial.SetPass(0);
 
@@ -373,19 +387,28 @@ public class PathRenderer : MonoBehaviour
             // Another vertex at edge of circle
             GL.Vertex3(vertexList[i + 1].x, vertexList[i + 1].y, vertexList[i + 1].z);
         }
+
         GL.End();
         GL.PopMatrix();
     }
 
 
 
-    public void ReLoad(string path, bool loadTestData)
+    public void Reload(PathData data)
     {
-        this.pathFile = path;
-        this.loadItemDataFromTest = loadTestData;
+        
         int childrenCount = this.rootObject.transform.childCount;
         for (int i = 0; i < childrenCount; i++)
-            DestroyImmediate(this.rootObject.transform.GetChild(i));
-        this.Start();
+            DestroyImmediate(this.rootObject.transform.GetChild(i).gameObject);
+
+        for (int i = 0; i < clickDotGameObjects.Length; i++)
+            DestroyImmediate(clickDotGameObjects[i]);
+
+        DestroyImmediate(testAnswersGameObject);
+
+        InitializePath(data);
+
+        startRenderIdxApprox = 0f;
+        endRenderIdxApprox = (float)vertexCount;
     }
 }

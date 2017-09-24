@@ -22,7 +22,7 @@ public class ItemLocationRenderer : MonoBehaviour {
     public enum EventType { Up, Down, Stationary };
 
 	// Use this for initialization
-	void Start () {
+	public void Start () {
         //Pad Colors if needed
         List<Color> colorsPadded = new List<Color>(colors);
         for (int i = 0; i < locations.Length - colors.Length; i++)
