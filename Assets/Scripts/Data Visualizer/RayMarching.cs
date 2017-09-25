@@ -26,7 +26,7 @@ public class RayMarching : MonoBehaviour
 
 	[Header("Drag all the textures in here")]
 	[SerializeField]
-	private Texture2D[] slices;
+	public Texture2D[] slices;
 	[SerializeField][Range(0, 2)]
 	private float opacity = 1;
 	[Header("Volume texture size. These must be a power of 2")]
@@ -35,7 +35,7 @@ public class RayMarching : MonoBehaviour
 	[SerializeField]
 	private int volumeHeight = 256;
 	[SerializeField]
-	private int volumeDepth = 256;
+	public int volumeDepth = 256;
 	[Header("Clipping planes percentage")]
 	[SerializeField]
 	private Vector4 clipDimensions = new Vector4(100, 100, 100, 0);
@@ -51,12 +51,12 @@ public class RayMarching : MonoBehaviour
 		_compositeMaterial = new Material(compositeShader);
 	}
 
-	private void Start()
+	public void Start()
 	{
 		GenerateVolumeTexture();
 	}
 
-	private void OnDestroy()
+    public void OnDestroy()
 	{
 		if(_volumeBuffer != null)
 		{
