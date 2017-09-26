@@ -1,0 +1,11 @@
+time (float)
+timescale (float)
+player position/orientation (from camera) ([float, float, float], [float, float, 
+key/controller presses (binary)
+float, float])
+# items visible (int)
+item positions (test) (float array one per item)
+items clicked/placed (bool array one per item)
+boundary state (num/color/transition progress) (int, [int, int, int], float)
+
+format: header/binary information
