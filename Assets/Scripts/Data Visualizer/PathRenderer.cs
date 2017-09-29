@@ -392,7 +392,10 @@ public class PathRenderer : MonoBehaviour
         GL.PopMatrix();
     }
 
-
+    public float CurrentTime
+    {
+        get { return vertexList[Mathf.RoundToInt(endRenderIdxApprox)].z / scaleOnLoad.z; }
+    }
 
     public void Reload(PathData data)
     {
