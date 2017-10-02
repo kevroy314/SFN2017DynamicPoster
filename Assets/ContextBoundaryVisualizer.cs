@@ -16,6 +16,8 @@ public class ContextBoundaryVisualizer : MonoBehaviour {
     private Text rightLabelText;
     private Text contextBoundaryLabelText;
 
+    public Text effectTextLabel;
+
     private RectTransform leftLabelTransform;
     private RectTransform rightLabelTransform;
     private RectTransform contextBoundaryLabelTransform;
@@ -97,6 +99,15 @@ public class ContextBoundaryVisualizer : MonoBehaviour {
         leftLabelText.text = leftNormDist.ToString("0.000");
         rightLabelText.text = rightNormDist.ToString("0.000");
 
-        contextBoundaryLabelText.text = (rightNormDist - leftNormDist).ToString("0.000");
+        float cbe = (rightNormDist - leftNormDist);
+
+        contextBoundaryLabelText.text = cbe.ToString("0.000");
+
+        string effect = "No CB Effect";
+
+        if (cbe < 0) effect = "Negative CB Effect";
+        if (cbe > 0) effect = "Positive (Standard) CB Effect";
+
+        effectTextLabel.text = effect;
     }
 }
