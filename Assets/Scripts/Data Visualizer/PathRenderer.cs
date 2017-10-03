@@ -63,6 +63,9 @@ public class PathRenderer : MonoBehaviour
     public Camera targetCamera;
     public float lineWidth;
 
+    public Transform characterMarkerTime;
+    public Transform characterMarkerExact;
+
     static void CreateLineMaterial()
     {
         if (!lineMaterial)
@@ -356,8 +359,9 @@ public class PathRenderer : MonoBehaviour
         //For each click item: 
         //If currently visualized index is greater than or equal to click item index, 
         //set click item active, otherwise set inactive
+        int i;
 
-        for(int i = 0; i < clickDotList.Length; i++)
+        for (i = 0; i < clickDotList.Length; i++)
         {
             if (clickDotList[i] <= endRenderIdxApprox)
                 clickDotGameObjects[i].SetActive(true);
@@ -378,7 +382,8 @@ public class PathRenderer : MonoBehaviour
 
         // Draw lines
         GL.Begin(GL.LINES);
-        for (int i = Mathf.RoundToInt(startRenderIdxApprox); i < Mathf.RoundToInt(endRenderIdxApprox); ++i)
+
+        for (i = Mathf.RoundToInt(startRenderIdxApprox); i < Mathf.RoundToInt(endRenderIdxApprox); ++i)
         {
             // Vertex colors change from red to green
             GL.Color(colorList[i]);
@@ -390,6 +395,9 @@ public class PathRenderer : MonoBehaviour
 
         GL.End();
         GL.PopMatrix();
+
+        characterMarkerTime.localPosition = new Vector3(characterMarkerTime.localPosition.x, characterMarkerTime.localPosition.y, vertexList[i].z);
+        characterMarkerExact.localPosition = new Vector3(vertexList[i].x, vertexList[i].y, vertexList[i].z);
     }
 
     public float CurrentTime
