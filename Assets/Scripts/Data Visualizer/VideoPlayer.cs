@@ -2,10 +2,21 @@
 using System.Collections;
 
 public class VideoPlayer : MonoBehaviour {
+    private MovieTexture movie;
+    private int vSyncPrevious;
 
 	// Use this for initialization
 	void Start () {
-        ((MovieTexture)GetComponent<Renderer>().material.mainTexture).loop = true;
-        ((MovieTexture)GetComponent<Renderer>().material.mainTexture).Play();
+        movie = ((MovieTexture)GetComponent<Renderer>().material.mainTexture);
+        vSyncPrevious = QualitySettings.vSyncCount;
+        QualitySettings.vSyncCount = 0;
+        movie.loop = true;
+        movie.Play();
+    }
+
+    void Update()
+    {
+        if (!movie.isPlaying)
+            QualitySettings.vSyncCount = vSyncPrevious;
     }
 }
